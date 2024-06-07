@@ -1,5 +1,7 @@
 import numpy as np
+import sys
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 import os
 
 
@@ -104,7 +106,7 @@ def find_repetition(list):
 def find_first_position_cycle(list):
     element_positions = {}
     flag1 = 0
-    while flag1==0:
+    while flag1 == 0:
         for idx, elem in enumerate(list):
             if elem in element_positions:
                 if flag1 != 1:
@@ -115,9 +117,7 @@ def find_first_position_cycle(list):
                 element_positions[elem] = [idx]
         for elem, positions in element_positions.items():
             if len(positions) > 1:
-                return np.abs(positions[1]-positions[0])
-
-
+                return np.abs(positions[1] - positions[0])
 
 
 # 查找两个数组在相同位置元素是否相同，如果有，就返回这个位置
@@ -229,11 +229,12 @@ def compute_cycle_length(N, scrambled_diedai_list):
     # end while
     return lists, cycle_lengths
 
+
 # 统计有多少种长度的循环圈，每种长度的循环圈有多少个，以及总的循环阶
 def cycle_situation_function(list):
     # 使用字典统计每个元素的出现次数
     counts = {}
-    count_jie=0
+    count_jie = 0
     for item in list:
         if item in counts:
             counts[item] += 1
@@ -247,20 +248,15 @@ def cycle_situation_function(list):
     for value in unique_values:
         count = counts[value]
         print(f"循环长度为{value}的有{count}个")
-        count_jie+=count*value
+        count_jie += count * value
     print("\n")
     print(f"总的循环长度(阶)为：{count_jie}")
     print("\n")
+    return count_jie
 
 
-def main():
-    # 用户输入参数
-    mu = float(input("请输入参数μ值 (3.57 < μ < 4): "))
-    x_0 = float(input("请输入初始值 x_0 (0<x<1): "))
+def main(N, x_0, mu):
     M = 1000
-
-    # 用户输入 N
-    N = int(input("请输入 N 值: \n"))
 
     # 计算x_{M+1} 到 x_{M+N}并存储到列表中
     diedai_list = diedai_M_to_N(M, N, mu, x_0)
@@ -296,13 +292,84 @@ def main():
     # 输出置乱表的循环阶
     cycle_situation = []
     for i in range(N):
-        index=find_first_position_cycle(lists[f'list{i+1}'])
+        index = find_first_position_cycle(lists[f'list{i + 1}'])
         print(f"置乱表第{i + 1}个元素的循环圈长度为：{index}")
         cycle_situation.append(index)
     print("\n")
-    cycle_situation_function(cycle_situation)
-
+    count_jie = cycle_situation_function(cycle_situation)
+    return count_jie
 
 
 if __name__ == "__main__":
-    main()
+    print("欢迎使用Logistic混沌映射！")
+    print("================================================")
+    # 用户输入 参数
+    N = int(input("请输入 N 值(大于100最好哦): "))
+    x_0 = float(input("请输入初始值 x_0 (0<x<1): "))
+    # 用户输入参数
+    mu = float(input("请输入参数μ值 (3.57 < μ < 4): "))
+    main(N, x_0, mu)
+
+    print("================================")
+    print("现在需要固定N,更换初始值x0,并计算出平均阶；以及更改N，并作出平均阶-N的曲线；我们把这两步融合一下：")
+    # 创建一个空列表
+    x_0_list = []
+    jie_list = []
+    ave_jie_N = []
+    # 询问用户要输入多少个值
+    num = int(input("请输入要输入的x_0值的数量："))
+    # 使用循环获取用户输入的值并添加到列表中
+    for i in range(num):
+        value = float(input("请输入第 {} 个值(也是在0到1之间哦)：".format(i + 1)))
+        x_0_list.append(value)
+    print("接下来会重复上面的操作，即置乱求循环圈等:\n")
+    # 保存原始的 stdout
+    original_stdout = sys.stdout
+    # 将 stdout 重定向到空文件（即丢弃所有的输出）
+    sys.stdout = open('nul', 'w')
+    for i in range(num):
+        result = main(N, x_0_list[i], mu)
+        jie_list.append(result)
+    # 恢复原始的 stdout
+    sys.stdout = original_stdout
+    print(f"各x_0的循环阶为：{jie_list}")
+    print(f"平均阶为{sum(jie_list) / num}")
+    print("================================")
+    print("接下来是利用上述输入的几个x_0,更改N的值，重复上述操作，求出平均阶，并作出平均阶-N的曲线:\n")
+    lists_N = generate_lists(100)
+    # 保存原始的 stdout
+    original_stdout = sys.stdout
+    # 将 stdout 重定向到空文件（即丢弃所有的输出）
+    sys.stdout = open('nul', 'w')
+    for i in range(N - 50, N + 50):
+        for j in range(num):
+            result = main(i, x_0_list[j], mu)
+            lists_N[f'list{i - N + 51}'].append(result)
+        ave_jie_N.append(sum(lists_N[f'list{i - N + 51}']) / num)
+    # 恢复原始的 stdout
+    sys.stdout = original_stdout
+    print(f"改变N的平均阶分别为：+{ave_jie_N}")
+    print(len(ave_jie_N))
+    print("接下来是绘制平均阶-N曲线：")
+    # 计算y-x并绘制曲线
+    N_list = []
+    for i in range(N - 50, N + 50):
+        N_list.append(i)
+
+    # 设置中文字体，以便显示中文标题
+    plt.rcParams['font.sans-serif'] = ['SimHei']  # 使用黑体作为中文字体
+    plt.rcParams['axes.unicode_minus'] = False  # 解决保存图像是负号'-'显示为方块的问题
+
+    # 绘制曲线
+    plt.plot(N_list, ave_jie_N, label='平均阶关于N的曲线')
+
+    # 添加标题和标签
+    plt.title('平均阶关于N的曲线')
+    plt.xlabel('N')
+    plt.ylabel('平均阶')
+
+    # 添加图例
+    plt.legend()
+
+    # 显示图形
+    plt.show()
