@@ -7,8 +7,8 @@ PB22151787 黄治国 mimaxue_dazuoye
 
 
 #### 软件架构
-code文件夹中为三个混沌映射的程序，Logistic为logistic混沌映射，Logistic_test为测试程序
-剩下两个程序待补充
+code文件夹中为三个混沌映射的程序，Logistic为logistic混沌映射，
+剩下两个程序待补充(已补充)
 
 
 #### 安装教程
