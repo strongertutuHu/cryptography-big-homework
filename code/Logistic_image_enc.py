@@ -1,13 +1,12 @@
 import numpy as np
 import sys
-import matplotlib.pyplot as plt
-from matplotlib.font_manager import FontProperties
-import os
-
+from PIL import Image
+import random
+import math
 
 # Logistic映射函数
-def singer_map(mu, x):
-    return mu * (7.86*x - 23.31*x**2 + 28.75*x**3 - 13.302875*x**4)
+def logistic_map(mu, x):
+    return mu * x * (1 - x)
 
 
 # 计算 x_{M+1} 到 x_{M+N} 迭代结果并存储到列表中
@@ -17,10 +16,10 @@ def diedai_M_to_N(M, N, mu, x_0):
     diedai_list = []
     # 先计算到M
     for _ in range(M):
-        x = singer_map(mu, x)
+        x = logistic_map(mu, x)
 
     for _ in range(N):
-        x = singer_map(mu, x)
+        x = logistic_map(mu, x)
         diedai_list.append(x)
     return diedai_list
 
@@ -140,7 +139,7 @@ def generate_lists(N):
 
 # 计算该置乱表的循环阶并存储在列表中
 def compute_cycle_length(N, scrambled_diedai_list):
-    cycle_lengths = [0] * N  # 存储各元素的循环圈长度，即经过多少次置乱回到原处
+    cycle_lengths = [0] * N  # 存储各元素的循环圈(没用到，不用看)
     scramble_temp1 = [0] * N  # 在置乱过程中需要两个中间数组来存储置乱结果，在置乱过程中对照中间数组和原始数组来求循环圈长度
     scramble_temp2 = [0] * N  # 这是第二个中间数组
     sorted_temp_list = [0] * N  # 每次置乱都需要排序，这是存储排序结果的数组
@@ -232,7 +231,6 @@ def cycle_situation_function(list):
     print("\n")
     return count_jie
 
-
 def main(N, x_0, mu):
     M = 1000
 
@@ -243,125 +241,67 @@ def main(N, x_0, mu):
     print(diedai_list)
     print("\n")
 
-    # 下面一段为画图输出混沌情况的，可以在第一次测试中打开看一下，后面ctrl+/在这一段前加上#就行了，不然会输出很多图浪费时间
-
-    # plt.rcParams['font.sans-serif'] = ['SimHei']
-    # plt.figure()
-    # plt.plot(diedai_list, '.')
-    # plt.xlabel('维度')
-    # plt.ylabel('混沌值')
-    # plt.figure()
-    # plt.hist(diedai_list)
-    # plt.xlabel('混沌值')
-    # plt.ylabel('频数')
-    # plt.show()
-
-    # 判断列表中是否有重复元素
-    has_repetition(diedai_list)
-
-    # 将M to N计算结果存储到txt文件中，如果不需要存储就把下面一行 # 就行
-    # save_diedai_list(M, N, diedai_list)
-
-    # 对列表进行排序
-    sorted_diedai_list = sort_list(diedai_list)
-
-    # 根据排序结果对列表进行置乱
-    scrambled_diedai_list = scramble(N, sorted_diedai_list, diedai_list)
-
-    # 将置乱后的数据存入txt文件中，如果不需要存储就把下面一行 #  就行
-    # save_scrambled_list(scrambled_diedai_list)
-
-    # 计算置乱表的循环阶并存储在列表中
-    lists, cycle_lengths = compute_cycle_length(N, scrambled_diedai_list)
-
-    # 输出置乱表的元素路径
-    print("以下为结束时各元素的路径：")
-    for i in range(1, N + 1):
-        print(f'list{i}:', lists[f'list{i}'])
-    print("\n")
-
-    # 输出置乱表的循环阶
-    cycle_situation = []
-    for i in range(N):
-        index = find_first_position_cycle(lists[f'list{i + 1}'])
-        print(f"置乱表第{i + 1}个元素的循环圈长度为：{index}")
-        cycle_situation.append(index)
-    print("\n")
-    count_jie = cycle_situation_function(cycle_situation)
-    return count_jie
 
 
 if __name__ == "__main__":
     print("欢迎使用Logistic混沌映射！")
     print("================================================")
     # 用户输入 参数
-    N = int(input("请输入 N 值(大于200最好哦): "))
-    x_0 = float(input("请输入初始值 x_0 (0<x<1): "))
+    # N = int(input("请输入 N 值(大于200最好哦): "))
+    # x_0 = float(input("请输入初始值 x_0 (0<x<1): "))
     # 用户输入参数
-    mu = float(input("请输入参数μ值 (0.9 < μ < 1.08): "))
-    main(N, x_0, mu)
+    mu = float(input("请输入参数μ值 (3.57 < μ < 4): "))
 
-    print("================================")
-    print("现在需要固定N,更换初始值x0,并计算出平均阶；以及更改N，并作出平均阶-N的曲线；我们把这两步融合一下：")
-    print("我们固定步长为1，将N从N-100到N+100来进行操作，您可以根据自己输入的N以及需求更改N的数量：\n")
-    # 创建一个空列表
-    x_0_list = []
-    jie_list = []
-    ave_jie_N = []
-    # 询问用户要输入多少个值
-    num = int(input("请输入要输入的x_0值的数量："))
-    # 使用循环获取用户输入的值并添加到列表中
-    for i in range(num):
-        value = float(input("请输入第 {} 个值(也是在0到1之间哦)：".format(i + 1)))
-        x_0_list.append(value)
-    print("接下来会重复上面的操作，即置乱求循环圈等:\n")
-    # 保存原始的 stdout
-    original_stdout = sys.stdout
-    # 将 stdout 重定向到空文件（即丢弃所有的输出）
-    sys.stdout = open('nul', 'w')
-    for i in range(num):
-        result = main(N, x_0_list[i], mu)
-        jie_list.append(result)
-    # 恢复原始的 stdout
-    sys.stdout = original_stdout
-    print(f"各x_0的循环阶为：{jie_list}")
-    print(f"平均阶为{sum(jie_list) / num}")
-    print("================================")
-    print("接下来是利用上述输入的几个x_0,更改N的值，重复上述操作，求出平均阶，并作出平均阶-N的曲线:\n")
-    lists_N = generate_lists(200)
-    # 保存原始的 stdout
-    original_stdout = sys.stdout
-    # 将 stdout 重定向到空文件（即丢弃所有的输出）
-    sys.stdout = open('nul', 'w')
-    for i in range(N - 100, N + 100):
-        for j in range(num):
-            result = main(i, x_0_list[j], mu)
-            lists_N[f'list{i - N + 101}'].append(result)
-        ave_jie_N.append(sum(lists_N[f'list{i - N + 101}']) / num)
-    # 恢复原始的 stdout
-    sys.stdout = original_stdout
-    print(f"改变N的平均阶分别为：+{ave_jie_N}")
-    print(len(ave_jie_N))
-    print("接下来是绘制平均阶-N曲线：")
-    # 计算y-x并绘制曲线
-    N_list = []
-    for i in range(N - 100, N + 100):
-        N_list.append(i)
 
-    # 设置中文字体，以便显示中文标题
-    plt.rcParams['font.sans-serif'] = ['SimHei']  # 使用黑体作为中文字体
-    plt.rcParams['axes.unicode_minus'] = False  # 解决保存图像是负号'-'显示为方块的问题
+    num = 100
+    # 生成100个随机初始种子，范围为0到1，保留两位小数(用户可以自己修改)
+    x_0_list = [round(random.uniform(0, 1), 2) for _ in range(100)]
+    lists2 = generate_lists(num)
 
-    # 绘制曲线
-    plt.plot(N_list, ave_jie_N, label='平均阶关于N的曲线')
+    # 加载图像
+    image_path = 'D:/pic.png'
+    image = Image.open(image_path)
+    image_array = np.array(image)
+    print(image_array.size)
+    N=math.ceil(image_array.size/num)
 
-    # 添加标题和标签
-    plt.title('平均阶关于N的曲线')
-    plt.xlabel('N')
-    plt.ylabel('平均阶')
+    for i in range(1,num+1):
+        lists2[f'list{i}']=diedai_M_to_N(1000, N, mu, x_0_list[i-1])
+    # 将这num个列表混合并存放在N长的列表中
+    merged_list = [x for sublist in zip(*lists2.values()) for x in sublist]
 
-    # 添加图例
-    plt.legend()
+    # 混沌序列
+    chaotic_sequence = merged_list
+    print(len(merged_list))
+    # print(merged_list)
+    # N=math.ceil(image_array.size/num)(向上取整) 确保混沌序列的长度足够覆盖图像的所有像素
+    if len(chaotic_sequence) < image_array.size:
+        raise ValueError("混沌序列的长度不足以覆盖图像的所有像素")
 
-    # 显示图形
-    plt.show()
+    # 将图像数组转换为一维数组
+    image_flat = image_array.flatten()
+    # 对其进行置乱
+    np.random.shuffle(image_flat)
+
+    # 对每个像素进行加密(使用异或操作将每个像素与混沌序列进行加密)
+    encrypted_image_flat = image_flat ^ (np.array(chaotic_sequence[:image_flat.size]) * 255).astype(int)
+
+    # 将加密后的一维数组重新变形为图像数组形状
+    encrypted_image_array = encrypted_image_flat.reshape(image_array.shape)
+
+    # 显示加密后的图像
+    encrypted_image = Image.fromarray(encrypted_image_array.astype(np.uint8))
+    encrypted_image.show()
+    # 保存加密后的图像
+    encrypted_image.save('D:/encrypted_pic.png')
+
+    # 如果没有对图像的一维数组置乱(即np.random.shuffle(image_flat))，则可以提供解密算法如下，但是需要有先前生成的置乱序列才能够解密
+    # 解密：对加密后的图像进行解密
+    # decrypted_image_flat = encrypted_image_flat ^ (np.array(chaotic_sequence[:image_flat.size]) * 255).astype(int)
+    # decrypted_image_array = decrypted_image_flat.reshape(image_array.shape)
+    #
+    # # 显示解密后的图像
+    # decrypted_image = Image.fromarray(decrypted_image_array.astype(np.uint8))
+    # decrypted_image.show()
+    # 保存解密后的图像
+    # decrypted_image.save('D:/decrypted_pic.png')

@@ -1,13 +1,14 @@
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
+import time
 from matplotlib.font_manager import FontProperties
 import os
 
 
 # Logistic映射函数
-def singer_map(mu, x):
-    return mu * (7.86*x - 23.31*x**2 + 28.75*x**3 - 13.302875*x**4)
+def logistic_map(mu, x):
+    return mu * x * (1 - x)
 
 
 # 计算 x_{M+1} 到 x_{M+N} 迭代结果并存储到列表中
@@ -17,10 +18,10 @@ def diedai_M_to_N(M, N, mu, x_0):
     diedai_list = []
     # 先计算到M
     for _ in range(M):
-        x = singer_map(mu, x)
+        x = logistic_map(mu, x)
 
     for _ in range(N):
-        x = singer_map(mu, x)
+        x = logistic_map(mu, x)
         diedai_list.append(x)
     return diedai_list
 
@@ -140,7 +141,7 @@ def generate_lists(N):
 
 # 计算该置乱表的循环阶并存储在列表中
 def compute_cycle_length(N, scrambled_diedai_list):
-    cycle_lengths = [0] * N  # 存储各元素的循环圈长度，即经过多少次置乱回到原处
+    cycle_lengths = [0] * N  # 存储各元素的循环圈(没用到，不用看)
     scramble_temp1 = [0] * N  # 在置乱过程中需要两个中间数组来存储置乱结果，在置乱过程中对照中间数组和原始数组来求循环圈长度
     scramble_temp2 = [0] * N  # 这是第二个中间数组
     sorted_temp_list = [0] * N  # 每次置乱都需要排序，这是存储排序结果的数组
@@ -244,7 +245,7 @@ def main(N, x_0, mu):
     print("\n")
 
     # 下面一段为画图输出混沌情况的，可以在第一次测试中打开看一下，后面ctrl+/在这一段前加上#就行了，不然会输出很多图浪费时间
-
+    #
     # plt.rcParams['font.sans-serif'] = ['SimHei']
     # plt.figure()
     # plt.plot(diedai_list, '.')
@@ -298,22 +299,25 @@ if __name__ == "__main__":
     N = int(input("请输入 N 值(大于200最好哦): "))
     x_0 = float(input("请输入初始值 x_0 (0<x<1): "))
     # 用户输入参数
-    mu = float(input("请输入参数μ值 (0.9 < μ < 1.08): "))
+    mu = float(input("请输入参数μ值 (3.57 < μ < 4): "))
+    # 记录程序开始时间
+    start_time = time.time()
     main(N, x_0, mu)
 
     print("================================")
     print("现在需要固定N,更换初始值x0,并计算出平均阶；以及更改N，并作出平均阶-N的曲线；我们把这两步融合一下：")
-    print("我们固定步长为1，将N从N-100到N+100来进行操作，您可以根据自己输入的N以及需求更改N的数量：\n")
     # 创建一个空列表
-    x_0_list = []
     jie_list = []
     ave_jie_N = []
+    num=5
+    x_0_list = [0.86, 0.29, 0.61, 0.74, 0.35]
     # 询问用户要输入多少个值
-    num = int(input("请输入要输入的x_0值的数量："))
+    # num = int(input("请输入要输入的x_0值的数量："))
     # 使用循环获取用户输入的值并添加到列表中
-    for i in range(num):
-        value = float(input("请输入第 {} 个值(也是在0到1之间哦)：".format(i + 1)))
-        x_0_list.append(value)
+    # for i in range(num):
+    #     value = float(input("请输入第 {} 个值(也是在0到1之间哦)：".format(i + 1)))
+    #     x_0_list.append(value)
+
     print("接下来会重复上面的操作，即置乱求循环圈等:\n")
     # 保存原始的 stdout
     original_stdout = sys.stdout
@@ -328,6 +332,7 @@ if __name__ == "__main__":
     print(f"平均阶为{sum(jie_list) / num}")
     print("================================")
     print("接下来是利用上述输入的几个x_0,更改N的值，重复上述操作，求出平均阶，并作出平均阶-N的曲线:\n")
+    print("我们固定步长为1，将N从N-100到N+100来进行操作，您可以根据自己输入的N以及需求更改N的数量：\n")
     lists_N = generate_lists(200)
     # 保存原始的 stdout
     original_stdout = sys.stdout
@@ -342,26 +347,31 @@ if __name__ == "__main__":
     sys.stdout = original_stdout
     print(f"改变N的平均阶分别为：+{ave_jie_N}")
     print(len(ave_jie_N))
-    print("接下来是绘制平均阶-N曲线：")
-    # 计算y-x并绘制曲线
-    N_list = []
-    for i in range(N - 100, N + 100):
-        N_list.append(i)
+    # 计算程序运行的实际时间（去除用户输入的时间）
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    print("程序运行的时间为：", elapsed_time, "秒")
+    # print("接下来是绘制平均阶-N曲线：")
+    # # 计算y-x并绘制曲线
+    # N_list = []
+    # for i in range(N - 100, N + 100):
+    #     N_list.append(i)
 
     # 设置中文字体，以便显示中文标题
-    plt.rcParams['font.sans-serif'] = ['SimHei']  # 使用黑体作为中文字体
-    plt.rcParams['axes.unicode_minus'] = False  # 解决保存图像是负号'-'显示为方块的问题
-
-    # 绘制曲线
-    plt.plot(N_list, ave_jie_N, label='平均阶关于N的曲线')
-
-    # 添加标题和标签
-    plt.title('平均阶关于N的曲线')
-    plt.xlabel('N')
-    plt.ylabel('平均阶')
-
-    # 添加图例
-    plt.legend()
-
-    # 显示图形
-    plt.show()
+    # plt.rcParams['font.sans-serif'] = ['SimHei']  # 使用黑体作为中文字体
+    # plt.rcParams['axes.unicode_minus'] = False  # 解决保存图像是负号'-'显示为方块的问题
+    #
+    # # 绘制曲线
+    # plt.plot(N_list, ave_jie_N, label='平均阶关于N的曲线')
+    #
+    # # 添加标题和标签
+    # plt.title('平均阶关于N的曲线')
+    # plt.xlabel('N')
+    # plt.ylabel('平均阶')
+    #
+    # # 添加图例
+    # plt.legend()
+    #
+    # # 显示图形
+    # plt.show()

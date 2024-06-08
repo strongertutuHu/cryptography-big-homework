@@ -244,20 +244,14 @@ def main(N, x_0):
     print("\n")
 
     # 下面一段为画图输出混沌情况的，可以在第一次测试中打开看一下，后面ctrl+/在这一段前加上#就行了，不然会输出很多图浪费时间
-    # x_list1 = np.zeros(N)
-    # x = x_0
-    # for _ in range(M):
-    #     x = circle_map(x)
-    # x_list1[0] = x
-    # for i in range(1, N):
-    #     x_list1[i] =((x_list1[i-1] + 0.2 - 0.5/(2*np.pi) * np.sin(2*np.pi*x_list1[i-1])) % 1 )
+
     # plt.rcParams['font.sans-serif'] = ['SimHei']
     # plt.figure()
-    # plt.plot(x_list1, '.')
+    # plt.plot(diedai_list, '.')
     # plt.xlabel('维度')
     # plt.ylabel('混沌值')
     # plt.figure()
-    # plt.hist(x_list1)
+    # plt.hist(diedai_list)
     # plt.xlabel('混沌值')
     # plt.ylabel('频数')
     # plt.show()
@@ -301,7 +295,7 @@ if __name__ == "__main__":
     print("欢迎使用Logistic混沌映射！")
     print("================================================")
     # 用户输入 参数
-    N = int(input("请输入 N 值(大于100最好哦): "))
+    N = int(input("请输入 N 值(大于200最好哦): "))
     x_0 = float(input("请输入初始值 x_0 (0<x<1): "))
     # 用户输入参数
     # mu = float(input("请输入参数μ值 (3.57 < μ < 4): "))
@@ -333,16 +327,17 @@ if __name__ == "__main__":
     print(f"平均阶为{sum(jie_list) / num}")
     print("================================")
     print("接下来是利用上述输入的几个x_0,更改N的值，重复上述操作，求出平均阶，并作出平均阶-N的曲线:\n")
-    lists_N = generate_lists(100)
+    print("我们固定步长为1，将N从N-100到N+100来进行操作，您可以根据自己输入的N以及需求更改N的数量：\n")
+    lists_N = generate_lists(200)
     # 保存原始的 stdout
     original_stdout = sys.stdout
     # 将 stdout 重定向到空文件（即丢弃所有的输出）
     sys.stdout = open('nul', 'w')
-    for i in range(N - 50, N + 50):
+    for i in range(N - 100, N + 100):
         for j in range(num):
             result = main(i, x_0_list[j])
-            lists_N[f'list{i - N + 51}'].append(result)
-        ave_jie_N.append(sum(lists_N[f'list{i - N + 51}']) / num)
+            lists_N[f'list{i - N + 101}'].append(result)
+        ave_jie_N.append(sum(lists_N[f'list{i - N + 101}']) / num)
     # 恢复原始的 stdout
     sys.stdout = original_stdout
     print(f"改变N的平均阶分别为：+{ave_jie_N}")
@@ -350,7 +345,7 @@ if __name__ == "__main__":
     print("接下来是绘制平均阶-N曲线：")
     # 计算y-x并绘制曲线
     N_list = []
-    for i in range(N - 50, N + 50):
+    for i in range(N - 100, N + 100):
         N_list.append(i)
 
     # 设置中文字体，以便显示中文标题
