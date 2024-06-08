@@ -9,6 +9,8 @@ PB22151787 黄治国 mimaxue_dazuoye
 #### 软件架构
 code文件夹中为三个混沌映射的程序，Logistic为logistic混沌映射，
 剩下两个程序待补充(已补充)
+Logistic_time为性能测试代码
+Logistic_image_enc为图像加密代码
 
 
 #### 安装教程
